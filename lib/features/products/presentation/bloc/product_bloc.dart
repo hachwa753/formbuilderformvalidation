@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_api_fetch/features/products/domain/model/product.dart';
 import 'package:flutter_api_fetch/features/products/domain/repo/product_repo.dart';
@@ -26,13 +28,30 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     emit(state.copyWith(productStatus: ProductStatus.loading));
     await Future.delayed(Duration(milliseconds: 50));
     try {
-      page = 1;
+      final cachedPosts = repo.getCachedProducts();
+      final cachedCount = cachedPosts.length;
+      page = (cachedCount ~/ limit) + 1;
+      if (cachedPosts.isNotEmpty) {
+        emit(
+          state.copyWith(
+            product: cachedPosts,
+            productStatus: ProductStatus.loaded,
+          ),
+        );
+      } else {
+        emit(state.copyWith(productStatus: ProductStatus.loading));
+      }
+
       final response = await repo.getAllProducts(page, limit);
       final products = response["data"] as List<Product>;
       final totalCount = response["totalCount"] as int;
+      final mergedProducts = [
+        ...cachedPosts,
+        ...products.where((posts) => !cachedPosts.any((c) => c.id == posts.id)),
+      ];
       emit(
         state.copyWith(
-          product: products,
+          product: mergedProducts,
           totalPosts: totalCount,
           productStatus: ProductStatus.loaded,
           hasMaxedPosts: products.length < limit,
@@ -53,19 +72,25 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     if (state.hasMaxedPosts || state.isLoading) return;
     emit(state.copyWith(isLoading: true));
     try {
-      page++;
+      log(page.toString());
       final response = await repo.getAllProducts(page, limit);
       final newProducts = response["data"] as List<Product>;
       // final totalCount = response["totalCount"] as int;
-
+      final updatedProducts = [
+        ...state.product,
+        ...newProducts.where(
+          (product) => !state.product.any((e) => e.id == product.id),
+        ),
+      ];
       emit(
         state.copyWith(
-          product: List.from(state.product)..addAll(newProducts),
+          product: updatedProducts,
           productStatus: ProductStatus.loaded,
           isLoading: false,
           hasMaxedPosts: newProducts.length < limit,
         ),
       );
+      page++;
     } catch (e) {
       emit(
         state.copyWith(

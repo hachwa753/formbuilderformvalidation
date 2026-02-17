@@ -22,7 +22,7 @@ class ApiSource {
         final totalCount = int.parse(
           response.headers.value('x-total-count') ?? "0",
         );
-        log(data.toString());
+        // log(data.toString());
         return {
           "data": data.map((e) => Product.fromMap(e)).toList(),
           "totalCount": totalCount,

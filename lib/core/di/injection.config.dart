@@ -12,6 +12,8 @@ import 'package:flutter_api_fetch/features/products/data/repo/product_repo_impl.
     as _i3;
 import 'package:flutter_api_fetch/features/products/data/source/api_source.dart'
     as _i733;
+import 'package:flutter_api_fetch/features/products/data/source/local_source.dart'
+    as _i539;
 import 'package:flutter_api_fetch/features/products/domain/repo/product_repo.dart'
     as _i751;
 import 'package:flutter_api_fetch/features/products/presentation/bloc/product_bloc.dart'
@@ -31,8 +33,11 @@ extension GetItInjectableX on _i174.GetIt {
       environmentFilter,
     );
     gh.lazySingleton<_i733.ApiSource>(() => _i733.ApiSource());
-    gh.lazySingleton<_i751.ProductRepo>(
-        () => _i3.ProductRepoImpl(gh<_i733.ApiSource>()));
+    gh.lazySingleton<_i539.LocalSource>(() => _i539.LocalSource());
+    gh.lazySingleton<_i751.ProductRepo>(() => _i3.ProductRepoImpl(
+          gh<_i733.ApiSource>(),
+          gh<_i539.LocalSource>(),
+        ));
     gh.factory<_i578.ProductBloc>(
         () => _i578.ProductBloc(gh<_i751.ProductRepo>()));
     return this;

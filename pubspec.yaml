@@ -48,6 +48,7 @@ dependencies:
   build_runner: ^2.4.0
   injectable: ^2.5.1
   injectable_generator: ^2.6.1
+  
 
 dev_dependencies:
   flutter_test:
